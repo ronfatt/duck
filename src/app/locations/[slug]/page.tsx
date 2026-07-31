@@ -2,6 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { Metadata } from 'next';
 import { MapPin, Phone, Clock, Navigation, ExternalLink, MessageCircle, ArrowLeft, ShieldCheck, Car } from 'lucide-react';
 import { LOCATIONS } from '@/data/locations';
 
@@ -9,6 +10,45 @@ export function generateStaticParams() {
   return LOCATIONS.map((loc) => ({
     slug: loc.slug,
   }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const location = LOCATIONS.find((loc) => loc.slug === slug);
+
+  if (!location) {
+    return {
+      title: '分行未找到 | 8分脆皮烧鸭',
+    };
+  }
+
+  return {
+    title: `${location.nameCn} (${location.areaName}) | 8分脆皮烧鸭`,
+    description: `位于${location.address}的“8分脆皮烧鸭 ${location.nameCn}”。营业时间：${location.openingHours}。点击查看 Waze 导航、Google 地图、周边地标与停车指南。`,
+    keywords: [
+      location.nameCn,
+      location.areaName,
+      `${location.areaName}烧鸭`,
+      `${location.areaName}烧肉`,
+      `${location.areaName}鸡饭`,
+      '8分脆皮烧鸭',
+      '烧鸭档口'
+    ],
+    openGraph: {
+      title: `${location.nameCn} | 8分脆皮烧鸭 8 Fen Crispy Roast Duck`,
+      description: `${location.address} · 营业时间：${location.openingHours}`,
+      url: `https://8fenroastduck.com/locations/${location.slug}`,
+      images: [
+        {
+          url: location.stallPhoto,
+          alt: location.nameCn,
+        },
+      ],
+    },
+    alternates: {
+      canonical: `/locations/${location.slug}`,
+    },
+  };
 }
 
 export default async function LocationDetailPage({ params }: { params: Promise<{ slug: string }> }) {
